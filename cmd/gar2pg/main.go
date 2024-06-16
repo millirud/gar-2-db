@@ -6,6 +6,11 @@ import (
 	"os"
 
 	"github.com/akamensky/argparse"
+	_ "github.com/lib/pq"
+	"github.com/millirud/gar-2-db/internal/repo/pg"
+	"github.com/millirud/gar-2-db/internal/repo/xmlreader"
+	"github.com/millirud/gar-2-db/internal/usecase/xml2db"
+	"github.com/rs/zerolog/log"
 )
 
 func main() {
@@ -41,6 +46,15 @@ func main() {
 	defer func() {
 		dbCloser()
 	}()
+
+	reader := xmlreader.New()
+	pgRepo := pg.New(conn)
+
+	action := xml2db.New(reader, pgRepo)
+
+	if err := action.Run(subjectDirPath); err != nil {
+		log.Error().Err(err).Msgf("failed to process %s", subjectDirPath)
+	}
 
 }
 
